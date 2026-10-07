@@ -1,0 +1,410 @@
+{
+  "name": "Worker_Datos",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "[Rol]\nSos un Asistente Operativo de Gestión Comercial especializado en la automatización de procesos y triaje de consultas corporativas.\n\n[Ámbito]\nOperás de forma exclusiva en el análisis y clasificación de solicitudes de nuevos contactos que ingresan por canales digitales.\n\n[Objetivo]\nEvaluar la intención del mensaje del usuario, estructurar los datos extraídos y decidir de manera autónoma si corresponde disparar herramientas de notificación externa.\n\n[Reglas y Escalamiento]\nNUNCA inventes datos de facturación, no prometas descuentos comerciales no autorizados, no utilices lenguaje inclusivo bajo ninguna circunstancia y limitá tus acciones estrictamente a la herramienta provista.\n\nCONFIGURACIÓN DE IDENTIDAD Y MEMORIA DE LARGO PLAZO\n[INICIO DE CONTEXTO COMPARTIDO]\nEl usuario se llama {{ $json.user_name }}. El estado de su caso es: {{ $json.status }}. El resumen de vuestra última charla es: {{ $json.last_summary }}.\n[FIN DEL CONTEXTO COMPARTIDO]",
+          "maxIterations": 6
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        384,
+        -96
+      ],
+      "id": "68ba34cb-b825-4080-8dba-8b9a4bbb4114",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1152,
+        -96
+      ],
+      "id": "5e1fcf9d-e0c8-4edb-b706-09e78cb39d40",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        384,
+        144
+      ],
+      "id": "c6cc142e-16fc-4094-a42e-5b237d7d67b9",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "mGVpybu5NdH8MlQZ",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "ibKnN1LNyKrSzRsj",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/ibKnN1LNyKrSzRsj",
+          "cachedResultName": "Worker_Datos"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        528,
+        224
+      ],
+      "id": "81f93352-87c2-4ad3-adbe-7587ced59e2e",
+      "name": "Call 'Worker_Datos'"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Simulamos la lectura de la base de datos de memoria\nfor (const item of $input.all()) {\n  item.json.user_name = \"Gastón\";\n  item.json.status = \"En proceso\";\n  item.json.last_summary = \"Última sesión enfocada en la configuración de la arquitectura y el diseño del flujo en n8n.\";\n}\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -32,
+        -96
+      ],
+      "id": "e633f128-65b8-4d09-a3cc-e4042064259d",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "be771b66-67e0-4653-af09-69d8745def9d",
+              "leftValue": "={{ $json.user_name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        128,
+        -96
+      ],
+      "id": "098c68eb-8f8d-4b47-ace3-4f34f5d8471e",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -464,
+        0
+      ],
+      "id": "54150214-8a2b-45d6-b220-38b481e93f7d",
+      "name": "Gmail Trigger"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "7e050615-afff-4e2d-bb7c-79d1a98e16fc",
+              "leftValue": "={{ $json.subject }}",
+              "rightValue": "Auto-reply",
+              "operator": {
+                "type": "array",
+                "operation": "notContains",
+                "rightType": "any"
+              }
+            },
+            {
+              "id": "93dc1eda-aa52-49bb-a75c-ada8d9703c28",
+              "leftValue": "={{ $json.subject }}",
+              "rightValue": "Out of office",
+              "operator": {
+                "type": "array",
+                "operation": "notContains",
+                "rightType": "any"
+              }
+            },
+            {
+              "id": "64b2f3b8-d3d5-4e67-ac6d-f2b2d5817bd4",
+              "leftValue": "={{ $json.subject }}",
+              "rightValue": "Undeliverable",
+              "operator": {
+                "type": "array",
+                "operation": "notContains",
+                "rightType": "any"
+              }
+            },
+            {
+              "id": "50518587-4938-4cf1-8cb0-f1a08a3cc99f",
+              "leftValue": "={{ $json.subject }}",
+              "rightValue": "no-reply",
+              "operator": {
+                "type": "array",
+                "operation": "notContains",
+                "rightType": "any"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -304,
+        0
+      ],
+      "id": "a49533f8-87f0-430b-a682-13c384617846",
+      "name": "Filtro Anti Auto-Reply"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a78edda4-68df-480c-9797-c7036355a8ad",
+              "name": "from",
+              "value": "soporte@tienda.com",
+              "type": "string"
+            },
+            {
+              "id": "6900898c-db33-4a12-86ce-b112000d4925",
+              "name": "subject",
+              "value": "=Consulta de soporte",
+              "type": "string"
+            },
+            {
+              "id": "4a831c95-afaf-4acb-b6bc-6002dedcaaa8",
+              "name": "text",
+              "value": "=Respuesta generada por el agente",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        672,
+        -96
+      ],
+      "id": "ad0bc48a-cbe3-484f-b509-d29b7d3c7059",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2.2,
+      "position": [
+        832,
+        -96
+      ],
+      "id": "c9548cba-2577-42f2-accb-f87c752c04a8",
+      "name": "Search contacts"
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        992,
+        -96
+      ],
+      "id": "f8133a1b-b371-4145-85a2-b4d621f5b67c",
+      "name": "Create a draft",
+      "webhookId": "09271dd6-97b9-44d9-b640-1b393d29c423"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Worker_Datos'": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Filtro Anti Auto-Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtro Anti Auto-Reply": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Search contacts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search contacts": {
+      "main": [
+        [
+          {
+            "node": "Create a draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a draft": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "ffbe7dc0-74bc-4483-b8e4-777af48a613e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f72678d6c335408a38c79c7ac6bb425b94723c3c8004a9d08ba7a1df7aca170e"
+  },
+  "nodeGroups": [],
+  "id": "cK07U1V4b0VQ21wM",
+  "tags": []
+}
